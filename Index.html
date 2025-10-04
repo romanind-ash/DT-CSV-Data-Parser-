@@ -347,7 +347,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📍 CSV Location Data Processor</h1>
+        <h1>CSV Location Data Processor</h1>
         <p class="subtitle">Transform your Groups or Contacts CSV for Google Sheets import</p>
 
         <div class="status-message" id="statusMessage"></div>
@@ -356,19 +356,19 @@
             <label class="mode-label">Select Data Type:</label>
             <div class="toggle-switch">
                 <input type="radio" id="modeGroup" name="dataMode" value="group" checked>
-                <label for="modeGroup" class="toggle-option">📊 Groups</label>
+                <label for="modeGroup" class="toggle-option">Groups</label>
                 
                 <input type="radio" id="modeContact" name="dataMode" value="contact">
-                <label for="modeContact" class="toggle-option">👤 Contacts</label>
+                <label for="modeContact" class="toggle-option">Contacts</label>
             </div>
             <div class="mode-info">
-                <span class="mode-icon">ℹ️</span>
+                <span class="mode-icon">INFO:</span>
                 <span id="modeText">Groups mode: Notes = "Group [ID]" | Phase = 4 or 5 based on Child Group</span>
             </div>
         </div>
 
         <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📁</div>
+            <div class="upload-icon">FILE</div>
             <div class="upload-text">Click to upload your CSV file</div>
             <div class="upload-subtext">or drag and drop here</div>
             <input type="file" id="fileInput" accept=".csv">
@@ -377,11 +377,11 @@
         <div class="file-info" id="fileInfo"></div>
 
         <div class="button-group">
-            <button class="btn-process" id="processBtn" disabled>🚀 Process Data</button>
-            <button class="btn-clear" id="clearBtn">🔄 Clear All</button>
+            <button class="btn-process" id="processBtn" disabled>Process Data</button>
+            <button class="btn-clear" id="clearBtn">Clear All</button>
         </div>
 
-        <button class="btn-download" id="downloadBtn">⬇️ DOWNLOAD CSV</button>
+        <button class="btn-download" id="downloadBtn">DOWNLOAD CSV</button>
 
         <div class="debug-section">
             <div class="debug-title">Debug Log:</div>
@@ -389,7 +389,7 @@
         </div>
 
         <div class="preview-section" id="previewSection">
-            <div class="preview-title">📋 Preview (first 20 rows)</div>
+            <div class="preview-title">Preview (first 20 rows)</div>
             <div style="overflow-x: auto;">
                 <table class="preview-table">
                     <thead>
@@ -426,7 +426,6 @@
         const modeContact = document.getElementById('modeContact');
         const modeText = document.getElementById('modeText');
 
-        // Update mode info text
         function updateModeInfo() {
             if (modeGroup.checked) {
                 modeText.textContent = 'Groups mode: Notes = "Group [ID]" | Phase = 4 or 5 based on Child Group';
@@ -438,7 +437,6 @@
         modeGroup.addEventListener('change', updateModeInfo);
         modeContact.addEventListener('change', updateModeInfo);
 
-        // Logging function
         function log(text, type = '') {
             const line = document.createElement('div');
             if (type === 'error') line.className = 'debug-error';
@@ -451,7 +449,6 @@
             debugContent.parentElement.scrollTop = debugContent.parentElement.scrollHeight;
         }
 
-        // File upload handling
         uploadArea.addEventListener('click', () => fileInput.click());
 
         uploadArea.addEventListener('dragover', (e) => {
@@ -500,7 +497,6 @@
             reader.readAsText(file);
         }
 
-        // Process button
         processBtn.addEventListener('click', () => {
             const isGroupMode = modeGroup.checked;
             const mode = isGroupMode ? 'GROUPS' : 'CONTACTS';
@@ -528,7 +524,6 @@
             }
         });
 
-        // Download button
         downloadBtn.addEventListener('click', () => {
             if (!processedData) return;
             
@@ -545,7 +540,6 @@
             log('CSV file downloaded', 'success');
         });
 
-        // Clear button
         clearBtn.addEventListener('click', () => {
             fileInput.value = '';
             csvData = null;
@@ -560,14 +554,12 @@
             log('Application reset', 'success');
         });
 
-        // CSV Parser
         function parseCSV(text) {
             const lines = text.split('\n');
             const headers = [];
             let current = '';
             let inQuotes = false;
 
-            // Parse headers
             for (let char of lines[0]) {
                 if (char === '"') {
                     inQuotes = !inQuotes;
@@ -582,7 +574,6 @@
 
             log('Found ' + headers.length + ' columns');
 
-            // Parse rows
             const rows = [];
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
@@ -626,7 +617,6 @@
             return rows;
         }
 
-        // Extract location data from JSON string
         function extractLocation(str) {
             if (!str || !str.trim()) return null;
 
@@ -648,22 +638,18 @@
             }
         }
 
-        // Map level to geo_level
         function mapLevel(level) {
             if (!level) return '';
             const l = level.toLowerCase().trim();
             
-            // Level 2: admin2, admin3, district, place
             if (['admin2', 'admin3', 'district', 'place'].includes(l)) {
                 return '2';
             }
             
-            // Level 3: postal_code, postcode
             if (['postal_code', 'postcode'].includes(l)) {
                 return '3';
             }
             
-            // Level 4: address, admin4, bicycle_store, clothing_store, establishment, locality, neighborhood, political, premise, route, street_address
             if (['address', 'admin4', 'bicycle_store', 'clothing_store', 'establishment', 'locality', 'neighborhood', 'political', 'premise', 'route', 'street_address'].includes(l)) {
                 return '4';
             }
@@ -671,7 +657,6 @@
             return '';
         }
 
-        // Main processing function
         function processCSV(csvText, isGroupMode) {
             const rows = parseCSV(csvText);
             const results = [];
@@ -687,26 +672,22 @@
                 const id = row['ID'] || '';
                 const status = row[statusField] || '';
 
-                // Filter 1: Skip if location is empty
                 if (!location.trim()) {
                     skipped++;
                     continue;
                 }
 
-                // Filter 2: Skip if status is not "Active"
                 if (status.toLowerCase() !== 'active') {
                     skipped++;
                     continue;
                 }
 
-                // Extract location data
                 const locData = extractLocation(location);
                 if (!locData) {
                     skipped++;
                     continue;
                 }
 
-                // Filter 3: Skip if level is "admin0" or "admin1"
                 if (locData.level && (locData.level.toLowerCase() === 'admin0' || locData.level.toLowerCase() === 'admin1')) {
                     skipped++;
                     if (skipped <= 3) {
@@ -715,20 +696,14 @@
                     continue;
                 }
 
-                // Map level to geo_level
                 const geoLevel = mapLevel(locData.level);
-                
-                // Create notes
                 const notes = id ? (dataType + ' ' + id) : '';
                 
-                // Determine phase
                 let phase;
                 if (isGroupMode) {
-                    // Groups: check Child Group field
                     const childGroup = row['Child Group'] || '';
                     phase = (childGroup && childGroup.trim()) ? '5' : '4';
                 } else {
-                    // Contacts: check Faith Steps OR Intake Info
                     const faithSteps = row['Faith Steps'] || '';
                     const intakeInfo = row['Intake Info'] || '';
                     const hasBaptized = faithSteps.includes('milestone_baptized');
@@ -736,7 +711,6 @@
                     phase = (hasBaptized || hasAlreadyBaptized) ? '3' : '2';
                 }
 
-                // Add to results
                 results.push({
                     geo_level: geoLevel,
                     geo_name: locData.name,
@@ -746,7 +720,6 @@
                     notes: notes
                 });
 
-                // Log first 3 rows
                 if (results.length <= 3) {
                     log('Row ' + (i + 1) + ': phase=' + phase + ', notes="' + notes + '"', 'success');
                 }
@@ -756,7 +729,6 @@
             return results;
         }
 
-        // Generate CSV from data
         function generateCSV(data) {
             const headers = ['geo_level', 'geo_name', 'geo_lat', 'geo_lng', 'phase', 'notes'];
             let csv = headers.join(',') + '\n';
@@ -772,7 +744,6 @@
             return csv;
         }
 
-        // Display preview table
         function displayPreview(data) {
             previewBody.innerHTML = '';
             const previewData = data.slice(0, 20);
@@ -792,14 +763,12 @@
             previewSection.style.display = 'block';
         }
 
-        // Show status message
         function showStatus(msg, type) {
             statusMessage.textContent = msg;
             statusMessage.className = 'status-message status-' + type;
             statusMessage.style.display = 'block';
         }
 
-        // Initial log
         log('Application ready - Select mode and upload CSV file');
     </script>
 </body>
